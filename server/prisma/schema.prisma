@@ -1,0 +1,148 @@
+// schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(cuid())
+  name       String
+  email      String   @unique
+  profilePic String?
+  bio        String?  @db.Text
+  college    String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  repositories  Repository[]
+  commits       Commit[]
+  issues        Issue[]
+  stars         Star[]
+  discussions   Discussion[]
+  collaborators Collaborator[]
+  Leaderboard   Leaderboard?
+}
+
+model Repository {
+  id           String     @id @default(cuid())
+  name         String
+  description  String?    @db.Text
+  visibility   Visibility @default(PUBLIC)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  ownerId      String
+  isForked     Boolean    @default(false)
+  forkedFromId String? // original repo id if forked
+
+  // Relations
+  owner         User           @relation(fields: [ownerId], references: [id])
+  commits       Commit[]
+  issues        Issue[]
+  stars         Star[]
+  discussions   Discussion[]   @relation("RepositoryDiscussions")
+  collaborators Collaborator[]
+  forkedFrom    Repository?    @relation("ForkRelation", fields: [forkedFromId], references: [id])
+  forks         Repository[]   @relation("ForkRelation")
+
+  @@unique([name, ownerId])
+}
+
+enum Visibility {
+  PUBLIC
+  PRIVATE
+}
+
+model Commit {
+  id        String   @id @default(cuid())
+  message   String
+  timestamp DateTime @default(now())
+  repoId    String
+  authorId  String
+  hash      String   @unique
+
+  // Relations
+  repository Repository @relation(fields: [repoId], references: [id])
+  author     User       @relation(fields: [authorId], references: [id])
+}
+
+model Issue {
+  id          String      @id @default(cuid())
+  title       String
+  description String      @db.Text
+  status      IssueStatus @default(OPEN)
+  repoId      String
+  creatorId   String
+  createdAt   DateTime    @default(now())
+
+  // Relations
+  repository Repository   @relation(fields: [repoId], references: [id])
+  creator    User         @relation(fields: [creatorId], references: [id])
+  comments   Discussion[] @relation("IssueComments")
+}
+
+enum IssueStatus {
+  OPEN
+  CLOSED
+}
+
+model Discussion {
+  id        String   @id @default(cuid())
+  message   String   @db.Text
+  createdAt DateTime @default(now())
+  authorId  String
+  repoId    String?
+  issueId   String?
+
+  // Relations
+  author     User        @relation(fields: [authorId], references: [id])
+  repository Repository? @relation("RepositoryDiscussions", fields: [repoId], references: [id])
+  issue      Issue?      @relation("IssueComments", fields: [issueId], references: [id])
+}
+
+model Star {
+  id        String   @id @default(cuid())
+  userId    String
+  repoId    String
+  createdAt DateTime @default(now())
+
+  // Relations
+  user       User       @relation(fields: [userId], references: [id])
+  repository Repository @relation(fields: [repoId], references: [id])
+
+  @@unique([userId, repoId]) // Prevent duplicate stars
+}
+
+model Collaborator {
+  id       String           @id @default(cuid())
+  userId   String
+  repoId   String
+  role     CollaboratorRole @default(CONTRIBUTOR)
+  joinedAt DateTime         @default(now())
+
+  // Relations
+  user       User       @relation(fields: [userId], references: [id])
+  repository Repository @relation(fields: [repoId], references: [id])
+
+  @@unique([userId, repoId])
+}
+
+enum CollaboratorRole {
+  OWNER
+  MAINTAINER
+  CONTRIBUTOR
+}
+
+model Leaderboard {
+  id         String   @id @default(cuid())
+  userId     String
+  score      Int      @default(0)
+  lastUpdate DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId])
+}
