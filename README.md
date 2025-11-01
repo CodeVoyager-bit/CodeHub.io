@@ -79,7 +79,7 @@ Built with **React.js, Express.js, Prisma, MySQL, and Google OAuth**, it demonst
 
 ---
 
-## 🧱 Database Schema (Simplified)
+## 🧱 Database Schema
 
 Key models include:
 
@@ -126,7 +126,7 @@ codehub/
 
 ---
 
-## 🔗 API Endpoints (Sample)
+## 🔗 API Endpoints 
 
 | Method   | Endpoint                  | Description           |
 | -------- | ------------------------- | --------------------- |
@@ -223,18 +223,6 @@ App runs on:
    git commit -m "Add some feature"
    ```
 4. Push and open a Pull Request 🚀
-
----
-
-## 📸 UI Screenshots (Optional Section)
-
-*(Add screenshots once UI is ready)*
-
-* Login Page
-* Dashboard
-* Repository Page
-* Issues & Discussions
-* Leaderboard
 
 ---
 
